@@ -16,28 +16,29 @@ export const Game: React.FC = () => {
   const [playerId] = useState(() => uuidv4());
   const [gameState, setGameState] = useState<GameState | null>(null);
   const socketRef = useRef<Socket | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const handleTabClose = (event: BeforeUnloadEvent) => {
       event.preventDefault();
       event.returnValue = "";
-      
+
       if (socketRef.current) {
-        socketRef.current.emit('disconnect');
+        socketRef.current.emit("disconnect");
         socketRef.current.disconnect();
       }
     };
 
-    window.addEventListener('beforeunload', handleTabClose);
+    window.addEventListener("beforeunload", handleTabClose);
 
     return () => {
-      window.removeEventListener('beforeunload', handleTabClose);
+      window.removeEventListener("beforeunload", handleTabClose);
     };
   }, [gameId]);
 
-  if (!playerName) {
-    const [tempName, setTempName] = useState("");
+  const [tempName, setTempName] = useState("");
 
+  if (!playerName) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-blue-50 to-blue-100 flex items-center justify-center p-4">
         <div className="bg-white rounded-lg shadow-xl p-6 sm:p-8 w-full max-w-md">
@@ -60,19 +61,39 @@ export const Game: React.FC = () => {
               />
 
               <button
-                onClick={() => {
+                onClick={async () => {
                   if (tempName.trim()) {
-                    navigate(
-                      `/game/${gameId}?name=${encodeURIComponent(
-                        tempName.trim()
-                      )}`
-                    );
+                    setIsLoading(true);
+                    try {
+                      await navigate(
+                        `/game/${gameId}?name=${encodeURIComponent(
+                          tempName.trim()
+                        )}`,
+                        { replace: true }
+                      );
+                      // Pequeno delay para garantir que a navegação foi concluída
+                      await new Promise((resolve) => setTimeout(resolve, 100));
+                      // Recarrega usando history API
+                      window.history.go(0);
+                    } catch (error) {
+                      console.error("Erro ao navegar:", error);
+                    } finally {
+                      setIsLoading(false);
+                    }
                   }
                 }}
-                className="w-full bg-blue-500 text-white px-6 py-3 rounded-md hover:bg-blue-600 disabled:opacity-50 font-medium transition-colors"
-                disabled={!tempName.trim()}
+                className={`
+    w-full px-6 py-3 rounded-md font-medium transition-colors
+    ${
+      isLoading
+        ? "bg-gray-400 cursor-not-allowed"
+        : "bg-blue-500 hover:bg-blue-600"
+    }
+    text-white disabled:opacity-50
+  `}
+                disabled={!tempName.trim() || isLoading}
               >
-                Ir para o jogo
+                {isLoading ? "Carregando..." : "Ir para o jogo"}
               </button>
             </div>
           </div>
