@@ -64,7 +64,6 @@ const handleWait = (game: any, playerId: string, io: any, gameId: string) => {
   if (!player) return;
 
   if (shouldWait(game.urinals.map((u: any) => u.isOccupied))) {
-    player.score += 50;
     game.message = `${player.name} decidiu esperar sabiamente!`;
     
     setTimeout(() => {

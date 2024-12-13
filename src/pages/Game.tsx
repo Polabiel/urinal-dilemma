@@ -36,9 +36,9 @@ export const Game: React.FC = () => {
     };
   }, [gameId]);
 
-  const [tempName, setTempName] = useState("");
-
   if (!playerName) {
+    const [tempName, setTempName] = useState("");
+
     return (
       <div className="min-h-screen bg-gradient-to-b from-blue-50 to-blue-100 flex items-center justify-center p-4">
         <div className="bg-white rounded-lg shadow-xl p-6 sm:p-8 w-full max-w-md">
