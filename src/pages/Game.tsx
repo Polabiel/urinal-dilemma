@@ -1,18 +1,85 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
-import { v4 as uuidv4 } from 'uuid';
-import { GameBoard } from '../components/GameBoard';
-import { WaitingRoom } from '../components/WaitingRoom';
-import { PlayerList } from '../components/PlayerList';
-import { useMultiplayerGame } from '../hooks/useMultiplayerGame';
-import { GameState } from '../types/game';
+import React, { useState, useEffect, useRef } from "react";
+import { useParams, useSearchParams, useNavigate } from "react-router-dom";
+import { v4 as uuidv4 } from "uuid";
+import { GameBoard } from "../components/GameBoard";
+import { WaitingRoom } from "../components/WaitingRoom";
+import { PlayerList } from "../components/PlayerList";
+import { useMultiplayerGame } from "../hooks/useMultiplayerGame";
+import { GameState } from "../types/game";
+import { Socket } from "socket.io-client";
 
 export const Game: React.FC = () => {
-  const { gameId = '' } = useParams();
+  const { gameId = "" } = useParams();
   const [searchParams] = useSearchParams();
-  const playerName = searchParams.get('name') || '';
+  const navigate = useNavigate();
+  const playerName = searchParams.get("name");
   const [playerId] = useState(() => uuidv4());
   const [gameState, setGameState] = useState<GameState | null>(null);
+  const socketRef = useRef<Socket | null>(null);
+
+  useEffect(() => {
+    const handleTabClose = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+      
+      if (socketRef.current) {
+        socketRef.current.emit('disconnect');
+        socketRef.current.disconnect();
+      }
+    };
+
+    window.addEventListener('beforeunload', handleTabClose);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleTabClose);
+    };
+  }, [gameId]);
+
+  if (!playerName) {
+    const [tempName, setTempName] = useState("");
+
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-blue-100 flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg shadow-xl p-6 sm:p-8 w-full max-w-md">
+          <div className="flex flex-col items-center space-y-6">
+            <h1 className="text-2xl sm:text-3xl font-bold text-blue-900">
+              {gameId ? "Entrar na Partida" : "Nova Partida"}
+            </h1>
+
+            <div className="w-full space-y-4">
+              <p className="text-red-600 font-medium text-center">
+                Você precisa informar um nome para jogar.
+              </p>
+
+              <input
+                type="text"
+                value={tempName}
+                onChange={(e) => setTempName(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Digite seu nome"
+              />
+
+              <button
+                onClick={() => {
+                  if (tempName.trim()) {
+                    navigate(
+                      `/game/${gameId}?name=${encodeURIComponent(
+                        tempName.trim()
+                      )}`
+                    );
+                  }
+                }}
+                className="w-full bg-blue-500 text-white px-6 py-3 rounded-md hover:bg-blue-600 disabled:opacity-50 font-medium transition-colors"
+                disabled={!tempName.trim()}
+              >
+                Ir para o jogo
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const { selectUrinal, waitForUrinal, markAsReady } = useMultiplayerGame(
     gameId,
@@ -66,7 +133,7 @@ export const Game: React.FC = () => {
               gameState={gameState}
               onUrinalSelect={selectUrinal}
               onWait={waitForUrinal}
-              playerId={playerId}
+              shouldWait={(urinals) => urinals.every((u) => u)}
             />
           </div>
           <div className="col-span-1">
@@ -76,7 +143,9 @@ export const Game: React.FC = () => {
 
         {gameState.message && (
           <div className="mt-4 text-center">
-            <p className="text-lg font-medium text-blue-800">{gameState.message}</p>
+            <p className="text-lg font-medium text-blue-800">
+              {gameState.message}
+            </p>
           </div>
         )}
       </div>

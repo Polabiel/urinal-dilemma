@@ -3,11 +3,15 @@ import { GameState } from '../types/game';
 import { generateNewDay } from '../utils/gameLogic';
 
 const createInitialState = (): GameState => ({
+  id: Math.random().toString(),
   day: 1,
   urinals: generateNewDay(1).map((isOccupied, id) => ({ id, isOccupied })),
   score: 0,
   gameOver: false,
   message: '',
+  players: [],
+  waitingAvailable: true,
+  waitingPlayers: [],
 });
 
 export const useGameState = () => {
@@ -17,6 +21,7 @@ export const useGameState = () => {
     setGameState(prev => {
       const nextDay = prev.day + 1;
       return {
+        ...prev,
         day: nextDay,
         urinals: generateNewDay(nextDay).map((isOccupied, id) => ({ id, isOccupied })),
         score: currentScore,
