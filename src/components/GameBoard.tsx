@@ -45,8 +45,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({ gameState, onUrinalSelect,
             py-2 px-4 rounded-md transition-all text-sm sm:text-base
             w-full sm:w-auto
             ${shouldWait(gameState.urinals.map(u => u.isOccupied))
-              ? 'bg-green-500 hover:bg-green-600 text-white'
-              : 'bg-gray-300 text-gray-700'
+              ? 'bg-gray-300 text-gray-700'
+              : 'bg-green-500 hover:bg-green-600 text-white'
             }
           `}
         >

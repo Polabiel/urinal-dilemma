@@ -11,6 +11,7 @@ export const createGame = (gameId: string): GameState => {
   const game: GameState = {
     id: gameId,
     day: 1,
+    wrongAttempts: {},
     score: 0,
     urinals: generateUrinals(1),
     players: [],

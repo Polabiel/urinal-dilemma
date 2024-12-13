@@ -41,6 +41,18 @@ const handleSelectUrinal = (game: any, playerId: string, index: number, io: any,
   const player = game.players.find((p: any) => p.id === playerId);
   if (!player) return;
 
+  // Inicializar wrongAttempts se não existir
+  if (!game.wrongAttempts[playerId]) {
+    game.wrongAttempts[playerId] = new Set();
+  }
+
+  // Verificar se já errou nesta posição
+  if (game.wrongAttempts[playerId].has(index)) {
+    game.message = `${player.name}, você já tentou esta posição e errou. Escolha outra!`;
+    io.to(gameId).emit('gameState', game);
+    return;
+  }
+
   if (isOptimalPosition(game.urinals, index)) {
     urinal.isOccupied = true;
     urinal.occupiedBy = playerId;
@@ -51,11 +63,14 @@ const handleSelectUrinal = (game: any, playerId: string, index: number, io: any,
       game.day += 1;
       game.urinals = generateUrinals(game.day);
       game.message = '';
+      game.wrongAttempts = {}; // Limpar tentativas ao avançar dia
       io.to(gameId).emit('gameState', game);
     }, 2000);
   } else {
     player.score -= 50;
+    game.wrongAttempts[playerId].add(index); // Registrar tentativa errada
     game.message = `${player.name} escolheu uma posição inadequada!`;
+    io.to(gameId).emit('gameState', game);
   }
 };
 

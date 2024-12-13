@@ -17,6 +17,9 @@ export interface GameState {
   score: number;
   urinals: Urinal[];
   players: Player[];
+  wrongAttempts: {
+    [playerId: string]: Set<number>;
+  }
   gameOver: boolean;
   message: string;
   waitingAvailable: boolean;
