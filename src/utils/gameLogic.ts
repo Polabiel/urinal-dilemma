@@ -1,41 +1,47 @@
+export const hasValidPosition = (urinals: boolean[]): boolean => {
+  const n = urinals.length;
+  for (let i = 0; i < n; i++) {
+    if (!urinals[i] && // posição vazia
+        (i === 0 || !urinals[i-1]) && // ninguém à esquerda
+        (i === n-1 || !urinals[i+1])) { // ninguém à direita
+      return true;
+    }
+  }
+  return false;
+}
+
+// Verifica se vale a pena esperar
+export const shouldWait = (urinals: boolean[]): boolean => {
+  // Se não houver posição válida, deve esperar
+  if (!hasValidPosition(urinals)) {
+    return true;
+  }
+
+  // Caso específico: 3 posições com pessoa no meio
+  if (urinals.length === 3 && urinals[1]) {
+    return true;
+  }
+
+  return false;
+}
+
 export const checkUrinalChoice = (urinals: boolean[], selectedIndex: number): boolean => {
-  // Regra básica: deve estar o mais distante possível de outras pessoas
   const n = urinals.length;
   
-  // Verifica se o mictório selecionado já está ocupado
-  if (urinals[selectedIndex]) {
+  if (urinals[selectedIndex]) return false;
+  
+  // Verifica adjacentes
+  if ((selectedIndex > 0 && urinals[selectedIndex - 1]) || 
+      (selectedIndex < n - 1 && urinals[selectedIndex + 1])) {
     return false;
   }
-  
-  // Verifica se há alguém ao lado
-  if (selectedIndex > 0 && urinals[selectedIndex - 1]) {
+
+  // Se deve esperar, qualquer escolha é inválida
+  if (shouldWait(urinals)) {
     return false;
   }
-  if (selectedIndex < n - 1 && urinals[selectedIndex + 1]) {
-    return false;
-  }
-  
-  // Verifica se existe uma posição melhor (mais distante)
-  let maxDistance = 0;
-  let bestPosition = -1;
-  
-  for (let i = 0; i < n; i++) {
-    if (urinals[i]) continue;
-    
-    let minDistance = Number.MAX_VALUE;
-    for (let j = 0; j < n; j++) {
-      if (urinals[j]) {
-        minDistance = Math.min(minDistance, Math.abs(i - j));
-      }
-    }
-    
-    if (minDistance > maxDistance) {
-      maxDistance = minDistance;
-      bestPosition = i;
-    }
-  }
-  
-  return selectedIndex === bestPosition;
+
+  return true;
 }
 
 export const generateNewDay = (currentDay: number): boolean[] => {
@@ -55,3 +61,4 @@ export const generateNewDay = (currentDay: number): boolean[] => {
   
   return urinals;
 }
+

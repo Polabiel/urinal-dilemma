@@ -14,6 +14,7 @@ export interface Urinal {
 export interface GameState {
   id: string;
   day: number;
+  score: number;
   urinals: Urinal[];
   players: Player[];
   gameOver: boolean;
@@ -23,7 +24,7 @@ export interface GameState {
 }
 
 export interface GameAction {
-  type: 'SELECT_URINAL' | 'WAIT' | 'PLAYER_READY' | 'NEXT_DAY' | 'GAME_OVER';
+  type: 'SELECT_URINAL' | 'WAIT' | 'PLAYER_READY' | 'NEXT_DAY';
   playerId: string;
   payload?: any;
 }
